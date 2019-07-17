@@ -11,80 +11,73 @@ import "value_listener.dart";
 // import "dart:convert";
 // import 'package:gbk_codec/gbk_codec.dart';
 
-
-
-class Bookdata{
+class Bookdata {
   String name;
   String baseUrl;
   String menuUrl;
 
   String menuSoupTag;
   String menuPattan;
+  List menudata;
 }
 
-
-
-getMenuList(Bookdata bk)async{
-  bk.name="剑来";
-  bk.baseUrl="http://www.shumil.co/jianlai/";
-  bk.menuUrl="index.html";
-  bk.menuSoupTag=".list";
-  var lsn=ListenerBox.instance.getel('lsner2');
-  await getS(bk.baseUrl+bk.menuUrl,lsn);
+getMenuList(Bookdata bk) async {
+  var lsn = ListenerBox.instance.getel('lsner2');
+  await getS(bk, lsn);
   // print(lsn.value);
-  
-  
 }
 
-charsetS(Response rp){
-  // var strs=rp.data.toString();
-  // // var s2=Beautifulsoup(strs.toString());
-  // // RegExp exp=new RegExp("(?:<meta[^>]*?charset=(\\w+)[\\W]*?>)");
-  // // var m=exp.firstMatch(s2.doc.head.innerHtml);
-  // // var _r="";
-  // // if (m.groupCount!=0){
-  // //   _r= m.group(1);
-  // // }
-
-  // var sss=Utf8Encoder().convert(rp.data);
-  var ss1=gbk2unicode(rp.data);
-  var ss2=Utf8Decoder().convert( unicode2utf8(ss1));
-  print(ss2);
-  
-
+charsetS(Response rp) {
+  var ss2 = Utf8Decoder().convert(unicode2utf8(gbk2unicode(rp.data)));
   return ss2;
+}
 
-} 
-
-getS(String url ,MyListener lsn)async{
+getS(Bookdata bk, MyListener lsn) async {
   try {
-      var opt = BaseOptions(
-        contentType: ContentType.html,
-        responseType: ResponseType.bytes
-      );
+    var opt = BaseOptions(contentType: ContentType.html, responseType: ResponseType.bytes);
 
-      Dio dio = new Dio(opt);
-      lsn.value = "等待";
-      Response response = await dio.get(url);
+    Dio dio = new Dio(opt);
+    lsn.value = "等待";
+    Response response = await dio.get(bk.baseUrl + bk.menuUrl);
 
-      if (response.statusCode == 200) {
-        print('response get');
-        var s=charsetS(response);
-        
-        print(s);
-        print('response show over');
+    if (response.statusCode == 200) {
+      var s = charsetS(response);
+      var soup = Beautifulsoup(s.toString());
+      var s1 = soup(bk.menuSoupTag);
+      // print(s1.outerHtml);
+      // var s11=Beautifulsoup(s1.outerHtml);
+      // var spt="(<div\\sclass=\"list\">.*?</div>)";
+      var spt = "(<li.+?/li>)";
+      var s11 = RegExp(spt, multiLine: true);
+      var s2 = s11.allMatches(s1.outerHtml);
+      // var s2=s11("div.list");
+      // lsn.value=s2;
+      var s12 = RegExp("<a\\shref=\"(.+?)\">(.+?)</a>", multiLine: true);
 
-        if (s != null) {
-          lsn.value = s;
+      if (s2 != null) {
+        if (s2.length == 0) {
+          lsn.value = 0;
         } else {
-          lsn.value = "没有找到";
+          bk.menudata = s2
+              .map((vs) {
+                var _r = s12.firstMatch(vs.group(1).toString());
+                return [_r.group(1).toString(),_r.group(2).toString()];
+              })
+              .toList();
+          lsn.value=bk.menudata;
+              
         }
+        // print("not null");
+        // lsn.value = s2.length.toString();
       } else {
-        lsn.value = "Request failed with status: ${response.statusCode}.";
+        lsn.value = "没有找到";
       }
-    } catch (e) {
-      lsn.value = e.toString();
+    } else {
+      lsn.value = "Request failed with status: ${response.statusCode}.";
     }
+  } catch (e) {
+    lsn.value = e.toString();
+  }
 }
 
 getpagedata(MyListener lsn) async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myreader/novel_menu_getter.dart';
 import 'package:mytts8/mytts8.dart';
 
 import 'get_string.dart';
@@ -9,7 +10,7 @@ import 'value_listener.dart';
 void main() {
   ListenerBox.instance.el('lsner1'); //文本内容监听器
   ListenerBox.instance.el('lsner2'); //目录内容监听器
-  ListenerBox.instance.el('lsner3'); //未用监听器
+  ListenerBox.instance.el('lsner3'); //书本监听器
   runApp(MyApp());
 }
 
@@ -17,6 +18,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var bk = Bookdata();
+    bk.name = "剑来";
+    bk.baseUrl = "http://www.shumil.co/jianlai/";
+    bk.menuUrl = "index.html";
+    bk.menuSoupTag = "div.content";
+    ListenerBox.instance.getel("lsner3").value=bk;
     getMenuList(bk);
     return MaterialApp(
       title: 'Flutter Demo',
@@ -59,6 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {});
     };
 
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -69,9 +76,10 @@ class _MyHomePageState extends State<MyHomePage> {
       //     fn: () {
       //       print("this reading is over ,this page");
       //     }),
-      body: Container(
-        child: Text(ListenerBox.instance.getel('lsner2').value.toString(),softWrap: true,),
-      ),
+      // body: Container(
+      //   child: Text(ListenerBox.instance.getel('lsner2').value.toString(),softWrap: true,),
+      // ),
+      body: menu(ListenerBox.instance.getel('lsner3').value, ListenerBox.instance.getel('lsner2')),
       floatingActionButton: FloatingActionButton(
         onPressed: showPage,
         tooltip: '跳转',

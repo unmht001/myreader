@@ -1,6 +1,6 @@
 
 class MyListener {
-  var _v = "初始";
+  dynamic _v = "初始";
   Function onGetter = () {};
   Function onSetter = () {};
   Function afterSetter = () {};
