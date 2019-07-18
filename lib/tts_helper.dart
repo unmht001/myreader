@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+// import 'package:myreader/value_listener.dart';
 import 'package:mytts8/mytts8.dart';
 
 import 'support.dart';
+import 'value_listener.dart';
 
 class Pagestate {
   Textsheet currentHL;
@@ -9,15 +11,20 @@ class Pagestate {
   Function readingCompleteHandler;
   Function handler;
 }
+
 //文本内容显示阅读页
 class WordPage extends StatefulWidget {
-  WordPage({Key key, this.document, this.tts, Function fn}) : super(key: key) {
-    
-    this.pst.readingCompleteHandler = fn;//设置阅读器读完本页后的动作
+  WordPage({Key key, Textsheet document, Mytts8 tts, Function fn})
+      : this.tts =
+            tts is String ? new Mytts8() : tts,
+        this.document= document is String? new Textsheet():document,
+        super(key: key) {
+    this.pst.readingCompleteHandler = fn; //设置阅读器读完本页后的动作
     this.pst.currentHL = this.document;
     if (this.document != null) this.document.changeHighlight();
+    if (ListenerBox.instance.getel('tts').value is String) {}
   }
-  final Mytts8 tts;//用来表示阅读器
+  final Mytts8 tts; //用来表示阅读器
   final Pagestate pst = new Pagestate(); //用来表示页面状态
   final Textsheet document; //用来表示 文本数据
   @override
@@ -25,6 +32,15 @@ class WordPage extends StatefulWidget {
 }
 
 class _WordPageState extends State<WordPage> {
+  _WordPageState() {
+    // ListenerBox.instance.getel('lsner1').afterSetter=refreshpage;
+  }
+  refreshpage() {
+    setState(() {
+      print("refresh page");
+    });
+  }
+
   Widget textsheetToWidget(Textsheet sss) {
     return Container(
         color: sss.cl,
@@ -58,7 +74,7 @@ class _WordPageState extends State<WordPage> {
                 this.widget.pst.currentHL = this.widget.pst.currentHL.son;
                 this.widget.pst.currentHL.changeHighlight();
                 readOrStop();
-              }else{
+              } else {
                 this.widget.pst.readingCompleteHandler();
               }
             });
@@ -76,16 +92,7 @@ class _WordPageState extends State<WordPage> {
   }
 
   List<Widget> chainToWidgetList(Chain sss) {
-    List<Widget> a = [
-      // Container(
-      //     child: Row(children: <Widget>[
-      //   IconButton(
-      //       icon: Icon(this.widget.pst.isReading ? Icons.pause_circle_filled : Icons.play_circle_filled,
-      //           color: !this.widget.pst.isReading ? Colors.green : Colors.orange),
-      //       onPressed: readOrStop),
-      //   IconButton(icon: Icon(Icons.settings), onPressed: setRead)
-      // ]))
-    ];
+    List<Widget> a = [];
     var b = sss;
     while (b != null) {
       a.add(textsheetToWidget(b));
