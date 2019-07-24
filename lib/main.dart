@@ -1,34 +1,17 @@
 import 'package:flutter/material.dart';
-// import 'package:myreader/novel_menu_getter.dart';
-import 'package:myreader/support.dart';
+// import 'package:myreader/support.dart';
 import 'package:myreader/tts_helper.dart';
 import 'package:mytts8/mytts8.dart';
 
 import 'get_string.dart';
-// import 'support.dart';
-// import "tts_helper.dart";
+
 import 'value_listener.dart';
 
 void main() {
-  ListenerBox.instance.el('lsner1'); //文本内容监听器
-  ListenerBox.instance.el('lsner2'); //目录内容监听器
-  ListenerBox.instance.el('bk'); //书本监听器
-  ListenerBox.instance.el('bks'); //书本监听器
-  ListenerBox.instance.el('tts'); //阅读器
+  StateInit();
 
-  //book data init
-  var bk = Bookdata();
-  bk.name = "剑来";
-  bk.baseUrl = "http://www.shumil.co/jianlai/";
-  bk.menuUrl = "index.html";
-  bk.menuSoupTag = "div.content";
-  ListenerBox.instance.getel("bk").value = bk;
-  // ListenerBox.instance.getel('lsner1').afterSetter = () {
-  //   print("lsner1 setter");
-  // };
-  ListenerBox.instance.getel('bks').value = [bk];
-  //tts init;
-  // ListenerBox.instance.getel('tts').value=Mytts8();
+
+
 
   runApp(MyApp());
 }
@@ -36,7 +19,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    if (ListenerBox.instance.getel("bk").value is Bookdata) {
+    if ( ListenerBox.instance.getel("bk").value is Bookdata) {
       getMenuList(ListenerBox.instance.getel("bk").value);
     }
 
@@ -76,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return FlatButton(
                 child: Text(bk.menudata[bk.menudata.length - 1 - index][1].toString(), softWrap: true),
                 onPressed: () {
-                  getpagedata(ListenerBox.instance.getel('lsner1'));
+                  getpagedata();
                 });
           });
     } else {
@@ -86,16 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (ListenerBox.instance.getel('lsner1').value is String)
-      ListenerBox.instance.getel('lsner1').value = new Textsheet();
-
-    if (ListenerBox.instance.getel('tts').value is String) ListenerBox.instance.getel('tts').value = new Mytts8();
-
-    ListenerBox.instance.getel('lsner1').afterSetter = () {
-      setState(() {
-        print("main setstate");
-      });
-    };
     ListenerBox.instance.getel('lsner2').afterSetter = () {
       setState(() {});
     };
@@ -115,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 }),
             menu(context, ListenerBox.instance.getel('bk').value, ListenerBox.instance.getel('lsner2')),
-            WordPage(document: ListenerBox.instance.getel('lsner1').value, tts: ListenerBox.instance.getel('tts').value)
+            WordPage()
           ],
         ));
   }

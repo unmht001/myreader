@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 // import 'package:myreader/value_listener.dart';
 import 'package:mytts8/mytts8.dart';
 
@@ -14,27 +15,38 @@ class Pagestate {
 
 //文本内容显示阅读页
 class WordPage extends StatefulWidget {
-  WordPage({Key key, Textsheet document, Mytts8 tts, Function fn})
-      : this.tts =
-            tts is String ? new Mytts8() : tts,
-        this.document= document is String? new Textsheet():document,
+  WordPage({Key key, Function fn})
+      : this.tts = gettts(),
         super(key: key) {
     this.pst.readingCompleteHandler = fn; //设置阅读器读完本页后的动作
-    this.pst.currentHL = this.document;
-    if (this.document != null) this.document.changeHighlight();
-    if (ListenerBox.instance.getel('tts').value is String) {}
   }
   final Mytts8 tts; //用来表示阅读器
   final Pagestate pst = new Pagestate(); //用来表示页面状态
-  final Textsheet document; //用来表示 文本数据
+  static gettts() {
+    if (ListenerBox.instance.getel('tts').value is String) StateInit();
+    return ListenerBox.instance.getel('tts').value;
+  }
+
   @override
   _WordPageState createState() => _WordPageState();
 }
 
 class _WordPageState extends State<WordPage> {
-  _WordPageState() {
-    // ListenerBox.instance.getel('lsner1').afterSetter=refreshpage;
+  Textsheet document;
+
+  _WordPageState() : super() {
+    document = ListenerBox.instance.getel('lsner1').value is String
+        ? Textsheet.getTextsheetChain(ListenerBox.instance.getel('lsner1').value)
+        : ListenerBox.instance.getel('lsner1').value as Textsheet;
   }
+
+  @override
+  void initState() {
+    super.initState();
+    this.widget.pst.currentHL = document;
+    document.changeHighlight();
+  }
+
   refreshpage() {
     setState(() {
       print("refresh page");
@@ -103,7 +115,8 @@ class _WordPageState extends State<WordPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> wl = chainToWidgetList(this.widget.document);
+    ListenerBox.instance.getel('lsner1').afterSetter = refreshpage;
+    List<Widget> wl = chainToWidgetList(document);
 
     return ListView(children: wl);
   }

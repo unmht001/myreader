@@ -1,3 +1,16 @@
+import 'package:mytts8/mytts8.dart';
+
+class Bookdata {
+  String name;
+  String baseUrl;
+  String menuUrl;
+
+  String menuSoupTag;
+  String menuPattan;
+  List menudata;
+
+  Bookdata({this.name, this.baseUrl, this.menuUrl, this.menuPattan, this.menudata, this.menuSoupTag});
+}
 
 class MyListener {
   dynamic _v = "初始";
@@ -27,25 +40,43 @@ class ListenerBox {
   ListenerBox._internal();
 
   static ListenerBox _getInstance() {
-    if (_instance == null) {
-      _instance = new ListenerBox._internal();
-    }
+    if (_instance == null) _instance = new ListenerBox._internal();
+
     return _instance;
   }
 
   void el(String name) {
-    if (name.isNotEmpty ) {
-      _box[name] = new MyListener();
+    if (name.isNotEmpty && ListenerBox.instance.getel(name) == null  ) _box[name] = new MyListener();
+  }
+
+  MyListener getel(String name) {
+    if (name.isEmpty || _box[name] == null) return null;
+    return _box[name];
+  }
+}
+
+class StateInit {
+  StateInit._internal() {
+    if (StateInit._instance == null) {
+      ListenerBox.instance.el('lsner1'); //文本内容监听器
+      ListenerBox.instance.el('lsner2'); //目录内容监听器
+      ListenerBox.instance.el('bk'); //书本监听器
+      ListenerBox.instance.el('bks'); //书本监听器
+      ListenerBox.instance.el('tts'); //阅读器
+
+      var bk = Bookdata(
+        name: "剑来",
+        baseUrl: "http://www.shumil.co/jianlai/",
+        menuUrl: "index.html",
+        menuSoupTag: "div.content",
+      );
+      ListenerBox.instance.getel("bk").value = bk;
+      ListenerBox.instance.getel('bks').value = [bk];
+      ListenerBox.instance.getel('tts').value=Mytts8();
     }
   }
-  MyListener getel(String name){
-    if (name.isEmpty){
-      return null;
-    }
-    var _r=_box[name];
-    if (_r == null){
-      ListenerBox.instance.el(name); 
-    }
-    return ListenerBox._box[name];
-  }
+  factory StateInit() =>_instance??new StateInit._internal();
+  static StateInit _instance ;
+  static StateInit get instance =>_instance??new StateInit._internal();
+
 }
