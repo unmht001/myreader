@@ -8,8 +8,33 @@ class Bookdata {
   String menuSoupTag;
   String menuPattan;
   List menudata;
+  num selected;
 
-  Bookdata({this.name, this.baseUrl, this.menuUrl, this.menuPattan, this.menudata, this.menuSoupTag});
+  Bookdata({this.name, this.baseUrl, this.menuUrl, this.menuPattan, this.menudata, this.menuSoupTag,this.selected});
+}
+
+class ListenerBox {
+  static final Map<String, MyListener> _box = {};
+  static ListenerBox _instance;
+
+  static ListenerBox get instance => _getInstance();
+  factory ListenerBox() => _getInstance();
+  ListenerBox._internal();
+
+  void el(String name) {
+    if (name.isNotEmpty && ListenerBox.instance.getel(name) == null  ) _box[name] = new MyListener();
+  }
+
+  MyListener getel(String name) {
+    if (name.isEmpty || _box[name] == null) return null;
+    return _box[name];
+  }
+
+  static ListenerBox _getInstance() {
+    if (_instance == null) _instance = new ListenerBox._internal();
+
+    return _instance;
+  }
 }
 
 class MyListener {
@@ -31,31 +56,10 @@ class MyListener {
   }
 }
 
-class ListenerBox {
-  static final Map<String, MyListener> _box = {};
-  static ListenerBox _instance;
-
-  static ListenerBox get instance => _getInstance();
-  factory ListenerBox() => _getInstance();
-  ListenerBox._internal();
-
-  static ListenerBox _getInstance() {
-    if (_instance == null) _instance = new ListenerBox._internal();
-
-    return _instance;
-  }
-
-  void el(String name) {
-    if (name.isNotEmpty && ListenerBox.instance.getel(name) == null  ) _box[name] = new MyListener();
-  }
-
-  MyListener getel(String name) {
-    if (name.isEmpty || _box[name] == null) return null;
-    return _box[name];
-  }
-}
-
 class StateInit {
+  static StateInit _instance ;
+  static StateInit get instance =>_instance??new StateInit._internal();
+  factory StateInit() =>_instance??new StateInit._internal();
   StateInit._internal() {
     if (StateInit._instance == null) {
       ListenerBox.instance.el('lsner1'); //文本内容监听器
@@ -75,8 +79,5 @@ class StateInit {
       ListenerBox.instance.getel('tts').value=Mytts8();
     }
   }
-  factory StateInit() =>_instance??new StateInit._internal();
-  static StateInit _instance ;
-  static StateInit get instance =>_instance??new StateInit._internal();
 
 }
