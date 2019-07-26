@@ -3,66 +3,73 @@ import 'dart:io';
 
 import 'package:beautifulsoup/beautifulsoup.dart';
 import "package:dio/dio.dart";
-// import 'package:flutter/widgets.dart';
+
 import 'package:gbk2utf8/gbk2utf8.dart';
 
 import "value_listener.dart";
 
-charsetS(Response rp) => Utf8Decoder().convert(unicode2utf8(gbk2unicode(rp.data)));
-
-getMenuList(Bookdata bk) async => await getS(bk);
-
-getpagedata() async {
-  var lsn = ListenerBox.instance.getel('lsner1');
-  Bookdata bk = ListenerBox.instance.getel('bk').value;
-  try {
-    // var url = "https://www.23us.so/files/article/html/1/1569/19553493.html";
-    Dio dio = new Dio(
-      BaseOptions(contentType: ContentType.html, responseType: ResponseType.bytes),
-    );
-    lsn.value = "等待";
-    var response = await dio.get(bk.baseUrl + bk.menudata[bk.selected][0]);
-    if (response.statusCode == 200) {
-      var soup = Beautifulsoup(charsetS(response).toString());
-      var _ss = soup.find(id: "#content");
-      var mch =
-          _ss != null ? RegExp("</div>[^>]+?(<p>[\\s\\S]+?</p>)", multiLine: true).allMatches(_ss.outerHtml) : null;
-
-      lsn.value = mch.length != 0 ? Beautifulsoup(mch.first.group(1).toString()).get_text() : "没有找到";
-    } else
-      lsn.value = "Request failed with status: ${response.statusCode}.";
-  } catch (e) {
-    lsn.value = e.toString();
+class PageOp {
+  static charsetS(Response rp, {String charset: "utf8"}) {
+    if (charset == 'gbk')
+      return Utf8Decoder().convert(unicode2utf8(gbk2unicode(rp.data)));
+    else if (charset == 'utf8')
+      return Utf8Decoder().convert(rp.data);
+    else
+      return 'unknow charset : $charset';
   }
-}
 
-getS(Bookdata bk) async {
-  var lsn = ListenerBox.instance.getel('lsner2');
-  try {
-    Dio dio = new Dio(
-      BaseOptions(contentType: ContentType.html, responseType: ResponseType.bytes),
-    );
-    lsn.value = "等待";
-    Response response = await dio.get(bk.baseUrl + bk.menuUrl);
+  static getmenudata({Bookdata book}) async => await getS(book ?? ListenerBox.instance['bk'].value);
 
-    if (response.statusCode == 200) {
-      var soup = Beautifulsoup(charsetS(response).toString());
-      var s1 = soup(bk.menuSoupTag);
-      var s2 = RegExp("(<li.+?/li>)", multiLine: true).allMatches(s1.outerHtml);
-      var s12 = RegExp("<a\\shref=\"(.+?)\">(.+?)</a>", multiLine: true);
-      var _r;
+  static getpagedata({Bookdata book}) async {
+    var lsn = ListenerBox.instance['pagedoc'];
+    Bookdata bk = book ?? ListenerBox.instance['bk'].value;
+    try {
+      Dio dio = new Dio(
+        BaseOptions(contentType: ContentType.html, responseType: ResponseType.bytes),
+      );
+      lsn.value = "等待";
+      var response = await dio.get(bk.baseUrl + bk.menudata[bk.selected][0]);
+      if (response.statusCode == 200) {
+        var soup = Beautifulsoup(charsetS(response, charset: bk.siteCharset).toString());
+        var _ss = soup.find(id: bk.contentSoupTap);
+        var mch = _ss != null ? RegExp(bk.contentPatten, multiLine: true).allMatches(_ss.outerHtml) : null;
 
-      lsn.value = s2 == null
-          ? "没有找到"
-          : s2.length == 0
-              ? 0
-              : bk.menudata = s2
-                  .map((vs) =>
-                      [(_r = s12.firstMatch(vs.group(1).toString())).group(1).toString(), _r.group(2).toString()])
-                  .toList();
-    } else
-      lsn.value = "Request failed with status: ${response.statusCode}.";
-  } catch (e) {
-    lsn.value = e.toString();
+        lsn.value = mch.length != 0 ? Beautifulsoup(mch.first.group(1).toString()).get_text() : "没有找到";
+      } else
+        lsn.value = "Request failed with status: ${response.statusCode}.";
+    } catch (e) {
+      lsn.value = e.toString();
+    }
+  }
+
+  static getS(Bookdata bk) async {
+    var lsn = ListenerBox.instance['menu'];
+    try {
+      Dio dio = new Dio(
+        BaseOptions(contentType: ContentType.html, responseType: ResponseType.bytes),
+      );
+      lsn.value = "等待";
+      Response response = await dio.get(bk.baseUrl + bk.menuUrl);
+
+      if (response.statusCode == 200) {
+        var soup = Beautifulsoup(charsetS(response, charset: bk.siteCharset).toString());
+        var s1 = soup(bk.menuSoupTag);
+        var s2 = RegExp(bk.menuPattan, multiLine: true).allMatches(s1.outerHtml);
+        var s12 = RegExp("<a\\shref=\"(.+?)\">(.+?)</a>", multiLine: true);
+        var _r;
+
+        lsn.value = s2 == null
+            ? "没有找到"
+            : s2.length == 0
+                ? 0
+                : bk.menudata = s2
+                    .map((vs) =>
+                        [(_r = s12.firstMatch(vs.group(1).toString())).group(1).toString(), _r.group(2).toString()])
+                    .toList();
+      } else
+        lsn.value = "Request failed with status: ${response.statusCode}.";
+    } catch (e) {
+      lsn.value = e.toString();
+    }
   }
 }

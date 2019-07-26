@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'dart:async';
-// import 'dart:io';
-// import 'package:flutter/services.dart';
-// import 'lanuageMap.dart';
+
 
 class Chain {
   Chain _father;

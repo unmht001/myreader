@@ -7,14 +7,13 @@ import 'value_listener.dart';
 
 void main() {
   StateInit();
-
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    if (ListenerBox.instance.getel("bk").value is Bookdata) getMenuList(ListenerBox.instance.getel("bk").value);
+    // if (ListenerBox.instance['bk'].value is Bookdata) PageOp.getmenudata(ListenerBox.instance['bk'].value);
     return MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(primarySwatch: Colors.blue),
@@ -32,7 +31,7 @@ class MyHomePage extends StatefulWidget {
       else
         print("set tts language to zh-CN $value is false,");
     });
-    ListenerBox.instance.getel('tts').value = this.tts;
+    ListenerBox.instance['tts'].value = this.tts;
   }
 
   @override
@@ -40,20 +39,47 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  var page = 1;
+  Widget pg = NoverMainPage(
+    getmenudata: PageOp.getmenudata,
+  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: PageView(children: <Widget>[
-          ListView.builder(
-              itemCount: ListenerBox.instance.getel('bks').value.length,
-              itemBuilder: (BuildContext context, int index) =>
-                  FlatButton(child: Text(ListenerBox.instance.getel('bks').value[index].name), onPressed: () {})),
-          menu(context, ListenerBox.instance.getel('bk').value),
-          WordPage()
-        ]));
+            title: Container(
+                child: Row(children: <Widget>[
+          FlatButton(
+              color: page == 1 ? Colors.yellowAccent : Colors.greenAccent,
+              child: Text("主  页"),
+              onPressed: () {
+                setState(() {
+                  page = 1;
+                  pg = NoverMainPage(getmenudata: PageOp.getmenudata, itemonpress: () {});
+                });
+              }),
+          FlatButton(
+              color: page == 2 ? Colors.yellowAccent : Colors.greenAccent,
+              child: Text("目录页"),
+              onPressed: () {
+                setState(() {
+                  page = 2;
+                  pg = MenuPage(getpagedata: PageOp.getpagedata, itemonpress: () {});
+                });
+              }),
+          FlatButton(
+              color: page == 3 ? Colors.yellowAccent : Colors.greenAccent,
+              child: Text("阅读页"),
+              onPressed: () {
+                setState(() {
+                  page = 3;
+                  pg = ContentPage();
+                });
+              })
+        ]))),
+        body: Container(
+          child: pg,
+        ));
   }
 
   @override
@@ -64,6 +90,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    if (this.mounted) ListenerBox.instance.getel('lsner2').afterSetter = () => setState(() {});
+    if (this.mounted) {
+      ListenerBox.instance['menu'].afterSetter = () => setState(() {
+            print('menu changed');
+          });
+      ListenerBox.instance['pagedoc'].afterSetter = () => setState(() {
+            print('page changed');
+          });
+      ListenerBox.instance['bk'].afterSetter = () => setState(() {
+            print('bk changed');
+          });
+    }
   }
 }
