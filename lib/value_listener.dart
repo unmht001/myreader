@@ -140,11 +140,24 @@ class StateInit {
         contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
         contentSoupTap: '#content',
       );
+      var bk5 = Bookdata(
+        name: "第一序列",
+        baseUrl: "http://www.shumil.co/dixulie/",
+        menuUrl: "index.html",
+        menuSoupTag: "div.content",
+        menuPattan: "(<li.+?/li>)",
+        siteCharset: 'gbk',
+        contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
+        contentSoupTap: '#content',
+      );
       ListenerBox.instance['bk'].value = bk1;
-      ListenerBox.instance['bks'].value = [bk1, bk2, bk3, bk4];
+      ListenerBox.instance['bks'].value = [bk1, bk2, bk3, bk4,bk5];
       ListenerBox.instance['isreading'].value=false;
       ListenerBox.instance['cpLoaded'].value=false;
       ListenerBox.instance['tts'].value = Mytts8();
+      ListenerBox.instance['speechrate'].value=1.5;
+      ListenerBox.instance['pitch'].value=0.8;
+      
     }
   }
 }

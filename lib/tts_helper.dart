@@ -27,7 +27,8 @@ class NoverMainPage extends StatelessWidget {
 class SliderC extends StatefulWidget {
   final Function(double) fn;
   final String label;
-  SliderC(this.label, {Key key, this.fn}) : super(key: key);
+  final MyListener lsn;
+  SliderC(this.label, this.lsn,{Key key, this.fn}) : super(key: key);
 
   _SliderCState createState() => _SliderCState(label, fn: fn);
 }
@@ -36,7 +37,6 @@ class _SliderCState extends State<SliderC> {
   _SliderCState(this.label, {BuildContext context, this.fn}) : super();
   final String label;
   Function(double) fn;
-  double mCurrentValue = 0.5;
   @override
   Widget build(BuildContext context) {
     return Row(children: <Widget>[
@@ -44,17 +44,17 @@ class _SliderCState extends State<SliderC> {
       Container(
           width: 350,
           child: Slider(
-            value: mCurrentValue,
+            value: this.widget.lsn.value,
             onChanged: (v) {
-              mCurrentValue = (v * 100).toInt() / 100;
+              this.widget.lsn.value = (v * 100).toInt() / 100;
               setState(() {
-                fn(mCurrentValue);
+                fn(this.widget.lsn.value);
               });
             },
             min: 0.5,
             max: 2,
             divisions: 15,
-            label: '$mCurrentValue',
+            label: '${this.widget.lsn.value}',
           ))
     ]);
   }
@@ -65,17 +65,17 @@ settingPage(BuildContext context, Function(double) onchange) {
     Container(
       height: 50,
     ),
-    SliderC("语速", fn: (double v) {
+    SliderC("语速", ListenerBox.instance['speechrate'], fn: (double v) {
       ListenerBox.instance['tts'].value.setSpeechRate(v / 2);
       onchange(v);
     }),
-    SliderC("语调", fn: (double v) {
+    SliderC("语调",ListenerBox.instance['pitch'], fn: (double v) {
       ListenerBox.instance['tts'].value.setPitch(v);
       onchange(v);
     }),
-    SliderC("未用", fn: (double v) {
-      onchange(v);
-    })
+    // SliderC("未用", fn: (double v) {
+    //   onchange(v);
+    // })
   ]);
 }
 
