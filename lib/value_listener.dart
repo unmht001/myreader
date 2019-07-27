@@ -13,7 +13,7 @@ class Bookdata {
   String siteCharset;
 
   String contentSoupTap;
-  
+
   String contentPatten;
 
   Bookdata({
@@ -101,48 +101,49 @@ class StateInit {
   StateInit._internal() {
     if (StateInit._instance == null) {
       var bk1 = Bookdata(
-          name: "剑来",
-          baseUrl: "http://www.shumil.co/jianlai/",
-          menuUrl: "index.html",
-          menuSoupTag: "div.content",
-          menuPattan: "(<li.+?/li>)",
-          siteCharset: 'gbk',
-          contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
-          contentSoupTap: '#content',
-          );
-            var bk2 = Bookdata(
-          name: "还是地球人狠",
-          baseUrl: "http://www.shumil.co/huanshidiqiurenhen/",
-          menuUrl: "index.html",
-          menuSoupTag: "div.content",
-          menuPattan: "(<li.+?/li>)",
-          siteCharset: 'gbk',
-          contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
-          contentSoupTap: '#content',
-          );
-                var bk3 = Bookdata(
-          name: "星辰之主",
-          baseUrl: "http://www.shumil.co/xingchenzhizhu/",
-          menuUrl: "index.html",
-          menuSoupTag: "div.content",
-          menuPattan: "(<li.+?/li>)",
-          siteCharset: 'gbk',
-          contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
-          contentSoupTap: '#content',
-          );
-                var bk4 = Bookdata(
-          name: "黎明之剑",
-          baseUrl: "http://www.shumil.co/limingzhijian/",
-          menuUrl: "index.html",
-          menuSoupTag: "div.content",
-          menuPattan: "(<li.+?/li>)",
-          siteCharset: 'gbk',
-          contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
-          contentSoupTap: '#content',
-          );
+        name: "剑来",
+        baseUrl: "http://www.shumil.co/jianlai/",
+        menuUrl: "index.html",
+        menuSoupTag: "div.content",
+        menuPattan: "(<li.+?/li>)",
+        siteCharset: 'gbk',
+        contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
+        contentSoupTap: '#content',
+      );
+      var bk2 = Bookdata(
+        name: "还是地球人狠",
+        baseUrl: "http://www.shumil.co/huanshidiqiurenhen/",
+        menuUrl: "index.html",
+        menuSoupTag: "div.content",
+        menuPattan: "(<li.+?/li>)",
+        siteCharset: 'gbk',
+        contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
+        contentSoupTap: '#content',
+      );
+      var bk3 = Bookdata(
+        name: "星辰之主",
+        baseUrl: "http://www.shumil.co/xingchenzhizhu/",
+        menuUrl: "index.html",
+        menuSoupTag: "div.content",
+        menuPattan: "(<li.+?/li>)",
+        siteCharset: 'gbk',
+        contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
+        contentSoupTap: '#content',
+      );
+      var bk4 = Bookdata(
+        name: "黎明之剑",
+        baseUrl: "http://www.shumil.co/limingzhijian/",
+        menuUrl: "index.html",
+        menuSoupTag: "div.content",
+        menuPattan: "(<li.+?/li>)",
+        siteCharset: 'gbk',
+        contentPatten: "</div>[^>]+?(<p>[\\s\\S]+?</p>)",
+        contentSoupTap: '#content',
+      );
       ListenerBox.instance['bk'].value = bk1;
-      ListenerBox.instance['bks'].value = [bk1,bk2,bk3,bk4];
-      
+      ListenerBox.instance['bks'].value = [bk1, bk2, bk3, bk4];
+      ListenerBox.instance['isreading'].value=false;
+      ListenerBox.instance['cpLoaded'].value=false;
       ListenerBox.instance['tts'].value = Mytts8();
     }
   }

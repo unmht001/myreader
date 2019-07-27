@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class Chain {
   Chain _father;
   Chain _son;
@@ -61,10 +60,10 @@ class Textsheet extends Chain {
   @override
   Chain born() => Chain.exchange(new Textsheet(), super.born());
 
-  changeHighlight() {
-    this.data["highlight"] = !this.data["highlight"];
-  }
-
+  changeHighlight() => this.data["highlight"] = !this.data["highlight"];
+  hightLight() => this.data["highlight"] = true;
+  disHightLight() => this.data["highlight"] = false;
+  
   static Textsheet getTextsheetChain(String text) {
     var s = text.split("\n");
     s.removeWhere((test) => test == "");

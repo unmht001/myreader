@@ -24,6 +24,61 @@ class NoverMainPage extends StatelessWidget {
   }
 }
 
+class SliderC extends StatefulWidget {
+  final Function(double) fn;
+  final String label;
+  SliderC(this.label, {Key key, this.fn}) : super(key: key);
+
+  _SliderCState createState() => _SliderCState(label, fn: fn);
+}
+
+class _SliderCState extends State<SliderC> {
+  _SliderCState(this.label, {BuildContext context, this.fn}) : super();
+  final String label;
+  Function(double) fn;
+  double mCurrentValue = 0.5;
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: <Widget>[
+      Text(label),
+      Container(
+          width: 350,
+          child: Slider(
+            value: mCurrentValue,
+            onChanged: (v) {
+              mCurrentValue = (v * 100).toInt() / 100;
+              setState(() {
+                fn(mCurrentValue);
+              });
+            },
+            min: 0.5,
+            max: 2,
+            divisions: 15,
+            label: '$mCurrentValue',
+          ))
+    ]);
+  }
+}
+
+settingPage(BuildContext context, Function(double) onchange) {
+  return ListView(children: <Widget>[
+    Container(
+      height: 50,
+    ),
+    SliderC("语速", fn: (double v) {
+      ListenerBox.instance['tts'].value.setSpeechRate(v / 2);
+      onchange(v);
+    }),
+    SliderC("语调", fn: (double v) {
+      ListenerBox.instance['tts'].value.setPitch(v);
+      onchange(v);
+    }),
+    SliderC("未用", fn: (double v) {
+      onchange(v);
+    })
+  ]);
+}
+
 class MenuPage extends StatelessWidget {
   final Function getpagedata;
   final Function itemonpress;
@@ -57,13 +112,14 @@ class ContentPage extends StatefulWidget {
   final Mytts8 tts;
   final ContentPagedata pst = new ContentPagedata(); //用来表示阅读器
   final MyListener lsn;
-  ContentPage({Key key, Function fn, MyListener lsn})
+  ContentPage({Key key, Function pageReadOverAction, MyListener listerner})
       : this.tts = gettts(),
-        this.lsn = lsn ?? ListenerBox.instance['pagedoc'],
+        this.lsn = listerner ?? ListenerBox.instance['pagedoc'],
         super(key: key) {
-    this.pst.readingCompleteHandler = fn; //设置阅读器读完本页后的动作
+    this.pst.readingCompleteHandler = pageReadOverAction; //设置阅读器读完本页后的动作
   } //用来表示页面状态
-  ContentPage.secondPage(String pagename, {Function fn}) : this(lsn: ListenerBox.instance[pagename], fn: fn);
+  ContentPage.secondPage(String pagename, {Function fn})
+      : this(listerner: ListenerBox.instance[pagename], pageReadOverAction: fn);
   @override
   _ContentPageState createState() => _ContentPageState();
 
@@ -74,13 +130,10 @@ class ContentPage extends StatefulWidget {
 }
 
 class _ContentPageState extends State<ContentPage> {
-  Textsheet document;
-
-  _ContentPageState() : super();
-
   @override
-  Widget build(BuildContext context) =>
-      document == null ? ListView(children: <Widget>[]) : ListView(children: chainToWidgetList(document));
+  Widget build(BuildContext context) => ListenerBox.instance['document'].value is String
+      ? ListView(children: <Widget>[])
+      : ListView(children: chainToWidgetList(ListenerBox.instance['document'].value as Textsheet));
 
   List<Widget> chainToWidgetList(Chain sss) {
     List<Widget> a = [];
@@ -94,32 +147,37 @@ class _ContentPageState extends State<ContentPage> {
 
   @override
   dispose() {
+    ListenerBox.instance['document'].afterSetter = () {};
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    document = this.widget.lsn.value is String
+    ListenerBox.instance['document'].afterSetter = () {
+      if (this.mounted) setState(() {});
+    };
+    this.widget.pst.currentHL = ListenerBox.instance['document'].value = this.widget.lsn.value is String
         ? Textsheet.getTextsheetChain(this.widget.lsn.value)
         : this.widget.lsn.value as Textsheet;
-
-    this.widget.pst.currentHL = document;
     this.widget.lsn.afterSetter = refreshpage;
-    document.changeHighlight();
+    ListenerBox.instance['document'].value.hightLight();
+    ListenerBox.instance['cpLoaded'].afterSetter = () {
+      if (ListenerBox.instance['isreading'].value && ListenerBox.instance['cpLoaded'].value) startReading();
+    };
   }
 
-  reading() async {
+  continueReading() async {
     if (await this.widget.tts.isLanguageAvailable('zh-CN'))
       setState(() {
         this.widget.tts.setCompletionHandler(() => setState(() {
               if (this.widget.pst.currentHL.son != null) {
-                this.widget.pst.currentHL.changeHighlight();
+                this.widget.pst.currentHL.disHightLight();
                 this.widget.pst.currentHL = this.widget.pst.currentHL.son;
-                this.widget.pst.currentHL.changeHighlight();
-                reading();
+                this.widget.pst.currentHL.hightLight();
+                continueReading();
               } else {
-                this.widget.pst.isReading = !this.widget.pst.isReading;
+                this.widget.pst.isReading = false;
                 this.widget.pst.readingCompleteHandler();
               }
             }));
@@ -129,50 +187,39 @@ class _ContentPageState extends State<ContentPage> {
       print('language is not available');
   }
 
-  readOrStop() async {
-    if (await this.widget.tts.isLanguageAvailable('zh-CN')) {
-      setState(() {
-        if (this.widget.pst.isReading) {
-          this.widget.tts.stop();
-          this.widget.pst.isReading = !this.widget.pst.isReading;
-        } else {
-          this.widget.tts.setCompletionHandler(() {
-            setState(() {
-              if (this.widget.pst.currentHL.son != null) {
-                this.widget.pst.currentHL.changeHighlight();
-                this.widget.pst.currentHL = this.widget.pst.currentHL.son;
-                this.widget.pst.currentHL.changeHighlight();
-                reading();
-              } else {
-                this.widget.pst.isReading = !this.widget.pst.isReading;
-                this.widget.pst.readingCompleteHandler();
-              }
-            });
-          });
-          this.widget.tts.speak(this.widget.pst.currentHL.text);
-        }
-      });
-    } else
-      print('language is not available');
+  startReading() async {
+    this.widget.pst.isReading = true;
+    if (this.widget.lsn == ListenerBox.instance['pagedoc']) ListenerBox.instance['isreading'].value = true;
+
+    continueReading();
+  }
+
+  stopReading() async {
+    this.widget.pst.isReading = false;
+    if (this.widget.lsn == ListenerBox.instance['pagedoc']) ListenerBox.instance['isreading'].value = false;
+    this.widget.tts.stop();
+    setState(() {});
   }
 
   refreshpage() {
-    if (this.mounted) setState(() => print("refresh page"));
+    this.widget.pst.currentHL = ListenerBox.instance['document'].value = this.widget.lsn.value is String
+        ? Textsheet.getTextsheetChain(this.widget.lsn.value)
+        : this.widget.lsn.value as Textsheet;
+    this.widget.lsn.afterSetter = refreshpage;
+    ListenerBox.instance['document'].value.hightLight();
   }
 
-  setRead() {
-    print('fasdfasdfa');
+  Widget textsheetToWidget(Textsheet sss) {
+    return Container(
+        color: sss.cl,
+        padding: EdgeInsets.all(5),
+        child: GestureDetector(
+            child: Text(sss.text, softWrap: true, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20.0)),
+            onTap: () => setState(() {
+                  if (this.widget.pst.currentHL != null) this.widget.pst.currentHL.changeHighlight();
+                  this.widget.pst.currentHL = sss;
+                  this.widget.pst.currentHL.changeHighlight();
+                  this.widget.pst.isReading ? stopReading() : startReading();
+                })));
   }
-
-  Widget textsheetToWidget(Textsheet sss) => Container(
-      color: sss.cl,
-      padding: EdgeInsets.all(5),
-      child: GestureDetector(
-          child: Text(sss.text, softWrap: true, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 20.0)),
-          onTap: () => setState(() {
-                this.widget.pst.currentHL.changeHighlight();
-                this.widget.pst.currentHL = sss;
-                this.widget.pst.currentHL.changeHighlight();
-                readOrStop();
-              })));
 }

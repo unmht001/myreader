@@ -30,6 +30,7 @@ class MyHomePage extends StatefulWidget {
         this.tts.setLanguage("zh-CN");
       else
         print("set tts language to zh-CN $value is false,");
+      ListenerBox.instance["page"].value = 1;
     });
     ListenerBox.instance['tts'].value = this.tts;
   }
@@ -39,46 +40,95 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var page = 1;
-  Widget pg = NoverMainPage(
-    getmenudata: PageOp.getmenudata,
-  );
+  // num page = ListenerBox.instance['page'].value;
+
+  getpage() {
+    if (ListenerBox.instance['page'].value == 1)
+      return new NoverMainPage(
+          getmenudata: PageOp.getmenudata,
+          itemonpress: () {
+            setState(() {
+              ListenerBox.instance['page'].value = 2;
+            });
+          });
+    else if (ListenerBox.instance['page'].value == 2)
+      return new MenuPage(
+          getpagedata: PageOp.getpagedata,
+          itemonpress: () {
+            setState(() {
+              ListenerBox.instance['page'].value = 3;
+            });
+          });
+    else if (ListenerBox.instance['page'].value == 3)
+      return new ContentPage(pageReadOverAction: () {
+        if (ListenerBox.instance['bk'].value.selected == 0)
+          print('readover');
+        else {
+          ListenerBox.instance['bk'].value.selected = ListenerBox.instance['bk'].value.selected - 1;
+          PageOp.getpagedata();
+        }
+      });
+    else if (ListenerBox.instance['page'].value == 4)
+      return Center(
+          child: settingPage(context, (double v) {
+        setState(() {
+          print(v);
+        });
+      }));
+    else
+      return Container();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // print(context.size);
     return Scaffold(
         appBar: AppBar(
             title: Container(
                 child: Row(children: <Widget>[
-          FlatButton(
-              color: page == 1 ? Colors.yellowAccent : Colors.greenAccent,
-              child: Text("主  页"),
-              onPressed: () {
-                setState(() {
-                  page = 1;
-                  pg = NoverMainPage(getmenudata: PageOp.getmenudata, itemonpress: () {});
-                });
-              }),
-          FlatButton(
-              color: page == 2 ? Colors.yellowAccent : Colors.greenAccent,
-              child: Text("目录页"),
-              onPressed: () {
-                setState(() {
-                  page = 2;
-                  pg = MenuPage(getpagedata: PageOp.getpagedata, itemonpress: () {});
-                });
-              }),
-          FlatButton(
-              color: page == 3 ? Colors.yellowAccent : Colors.greenAccent,
-              child: Text("阅读页"),
-              onPressed: () {
-                setState(() {
-                  page = 3;
-                  pg = ContentPage();
-                });
-              })
+          Container(
+              width: 80,
+              child: FlatButton(
+                  color: ListenerBox.instance['page'].value == 1 ? Colors.yellowAccent : Colors.greenAccent,
+                  child: Text("主  页"),
+                  onPressed: () {
+                    setState(() {
+                      ListenerBox.instance['page'].value = 1;
+                    });
+                  })),
+          Container(
+              width: 80,
+              child: FlatButton(
+                  color: ListenerBox.instance['page'].value == 2 ? Colors.yellowAccent : Colors.greenAccent,
+                  child: Text("目录页"),
+                  onPressed: () {
+                    setState(() {
+                      ListenerBox.instance['page'].value = 2;
+                    });
+                  })),
+          Container(
+              width: 80,
+              child: FlatButton(
+                  color: ListenerBox.instance['page'].value == 3 ? Colors.yellowAccent : Colors.greenAccent,
+                  child: Text("阅读页"),
+                  onPressed: () {
+                    setState(() {
+                      ListenerBox.instance['page'].value = 3;
+                    });
+                  })),
+          Container(
+              width: 80,
+              child: FlatButton(
+                  color: ListenerBox.instance['page'].value == 4 ? Colors.yellowAccent : Colors.greenAccent,
+                  child: Text("设置页"),
+                  onPressed: () {
+                    setState(() {
+                      ListenerBox.instance['page'].value = 4;
+                    });
+                  }))
         ]))),
         body: Container(
-          child: pg,
+          child: getpage(),
         ));
   }
 
@@ -91,14 +141,18 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     if (this.mounted) {
+      print('state init');
       ListenerBox.instance['menu'].afterSetter = () => setState(() {
             print('menu changed');
           });
       ListenerBox.instance['pagedoc'].afterSetter = () => setState(() {
-            print('page changed');
+            print('pagedoc changed');
           });
       ListenerBox.instance['bk'].afterSetter = () => setState(() {
             print('bk changed');
+          });
+      ListenerBox.instance['page'].afterSetter = () => setState(() {
+            print('page index changed');
           });
     }
   }

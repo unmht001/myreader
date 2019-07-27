@@ -20,8 +20,10 @@ class PageOp {
 
   static getmenudata({Bookdata book}) async => await getS(book ?? ListenerBox.instance['bk'].value);
 
-  static getpagedata({Bookdata book}) async {
-    var lsn = ListenerBox.instance['pagedoc'];
+  static getpagedata({Bookdata book ,MyListener lsner}) async {
+
+    var lsn = lsner ??ListenerBox.instance['pagedoc'];
+    if (lsn==ListenerBox.instance['pagedoc']) ListenerBox.instance['cpLoaded'].value=false;
     Bookdata bk = book ?? ListenerBox.instance['bk'].value;
     try {
       Dio dio = new Dio(
@@ -33,10 +35,12 @@ class PageOp {
         var soup = Beautifulsoup(charsetS(response, charset: bk.siteCharset).toString());
         var _ss = soup.find(id: bk.contentSoupTap);
         var mch = _ss != null ? RegExp(bk.contentPatten, multiLine: true).allMatches(_ss.outerHtml) : null;
-
-        lsn.value = mch.length != 0 ? Beautifulsoup(mch.first.group(1).toString()).get_text() : "没有找到";
+        
+        lsn.value = mch.length != 0 ? Beautifulsoup(mch.first.group(1).toString()).doc.body.text : "没有找到";
+        
       } else
         lsn.value = "Request failed with status: ${response.statusCode}.";
+        if (lsn==ListenerBox.instance['pagedoc']) ListenerBox.instance['cpLoaded'].value=true;
     } catch (e) {
       lsn.value = e.toString();
     }
